@@ -27,15 +27,15 @@ const Game = () => {
       app.resizeCanvas();
     });
 
-    const camera = new pc.Entity("camera");
+    const camera = new pc.Entity("Camera");
     camera.addComponent("camera", {
       clearColor: new pc.Color(0.1, 0.1, 0.1),
     });
 
-    const light = new pc.Entity("light");
+    const light = new pc.Entity("Light");
     light.addComponent("light");
 
-    // Background image sprie
+    // Background image sprite
 
     app.assets.loadFromUrlAndFilename(
       post,
@@ -48,7 +48,7 @@ const Game = () => {
         texture.minFilter = pc.FILTER_NEAREST;
         texture.magFilter = pc.FILTER_NEAREST;
 
-        var atlas = new pc.TextureAtlas();
+        const atlas = new pc.TextureAtlas();
         atlas.frames = {
           0: {
             rect: new pc.Vec4(0, 0, 1920, 997),
@@ -57,19 +57,19 @@ const Game = () => {
         };
         atlas.texture = texture;
 
-        var sprite = new pc.Sprite(app.graphicsDevice, {
+        const sprite = new pc.Sprite(app.graphicsDevice, {
           atlas: atlas,
           frameKeys: "0",
           pixelsPerUnit: 100,
           renderMode: pc.SPRITE_RENDERMODE_SIMPLE,
         });
 
-        var spriteAsset = new pc.Asset("sprite", "sprite", { url: "" });
+        const spriteAsset = new pc.Asset("sprite", "sprite", { url: "" });
         spriteAsset.resource = sprite;
         spriteAsset.loaded = true;
         app.assets.add(spriteAsset);
 
-        var background = new pc.Entity();
+        const background = new pc.Entity("Background");
         background.addComponent("sprite", {
           type: pc.SPRITETYPE_SIMPLE,
           spriteAsset: spriteAsset,
@@ -87,13 +87,13 @@ const Game = () => {
       "ship.png",
       "texture",
       function (err, asset) {
-        var texture = asset.resource;
+        const texture = asset.resource;
         texture.addressU = pc.ADDRESS_CLAMP_TO_EDGE;
         texture.addressV = pc.ADDRESS_CLAMP_TO_EDGE;
         texture.minFilter = pc.FILTER_NEAREST;
         texture.magFilter = pc.FILTER_NEAREST;
 
-        var atlas = new pc.TextureAtlas();
+        const atlas = new pc.TextureAtlas();
         atlas.frames = {
           0: {
             rect: new pc.Vec4(0, 0, 300, 455),
@@ -102,19 +102,19 @@ const Game = () => {
         };
         atlas.texture = texture;
 
-        var sprite = new pc.Sprite(app.graphicsDevice, {
+        const sprite = new pc.Sprite(app.graphicsDevice, {
           atlas: atlas,
           frameKeys: "0",
           pixelsPerUnit: 100,
           renderMode: pc.SPRITE_RENDERMODE_SIMPLE,
         });
 
-        var spriteAsset = new pc.Asset("sprite", "sprite", { url: "" });
+        const spriteAsset = new pc.Asset("sprite", "sprite", { url: "" });
         spriteAsset.resource = sprite;
         spriteAsset.loaded = true;
         app.assets.add(spriteAsset);
 
-        var ship = new pc.Entity();
+        const ship = new pc.Entity("Space_Ship");
         ship.addComponent("sprite", {
           type: pc.SPRITETYPE_SIMPLE,
           spriteAsset: spriteAsset,
@@ -125,8 +125,10 @@ const Game = () => {
         ship.setLocalScale(0.1, 0.1, 0);
         ship.addComponent("rigidbody", {
           type: pc.BODYTYPE_DYNAMIC,
-          mass: 10,
+          mass: 0,
         });
+
+        ship.addComponent("collision");
 
         let xMin = -8,
           xMax = 8,
@@ -169,6 +171,10 @@ const Game = () => {
 
           rb.teleport(position);
           ship.translate(movement);
+
+          ship.collision.on("collisionstart", () => {
+            console.log("collision");
+          });
         });
       }
     );
@@ -177,11 +183,11 @@ const Game = () => {
     app.root.addChild(light);
     camera.setPosition(0, 0, 10);
 
-    var GameController = pc.createScript("gameController");
+    const GameController = pc.createScript("gameController");
 
     GameController.attributes.add("spawnValues", {
       type: "vec3",
-      default: new pc.Vec3(6, 0, 16),
+      default: new pc.Vec3(4, 5, 0),
     });
 
     GameController.attributes.add("hazardCount", {
@@ -214,7 +220,6 @@ const Game = () => {
 
       const spawnWaves = async () => {
         await waitForSeconds(self.startWait);
-
         while (true) {
           for (let i = 0; i < this.hazardCount; i++) {
             const hazards = this.app.root.findByTag("hazard");
@@ -244,13 +249,13 @@ const Game = () => {
       "Asteroid-1.png",
       "texture",
       function (err, asset) {
-        var texture = asset.resource;
+        const texture = asset.resource;
         texture.addressU = pc.ADDRESS_CLAMP_TO_EDGE;
         texture.addressV = pc.ADDRESS_CLAMP_TO_EDGE;
         texture.minFilter = pc.FILTER_NEAREST;
         texture.magFilter = pc.FILTER_NEAREST;
 
-        var atlas = new pc.TextureAtlas();
+        const atlas = new pc.TextureAtlas();
         atlas.frames = {
           0: {
             rect: new pc.Vec4(0, 0, 400, 400),
@@ -259,36 +264,86 @@ const Game = () => {
         };
         atlas.texture = texture;
 
-        var sprite = new pc.Sprite(app.graphicsDevice, {
+        const sprite = new pc.Sprite(app.graphicsDevice, {
           atlas: atlas,
           frameKeys: "0",
           pixelsPerUnit: 100,
           renderMode: pc.SPRITE_RENDERMODE_SIMPLE,
         });
 
-        var spriteAsset = new pc.Asset("sprite", "sprite", { url: "" });
+        const spriteAsset = new pc.Asset("sprite", "sprite", { url: "" });
         spriteAsset.resource = sprite;
         spriteAsset.loaded = true;
         app.assets.add(spriteAsset);
 
-        var asteroids = new pc.Entity();
-        asteroids.addComponent("sprite", {
+        const asteroid = new pc.Entity("Asteroid");
+        asteroid.addComponent("sprite", {
           type: pc.SPRITETYPE_SIMPLE,
           spriteAsset: spriteAsset,
         });
 
-        app.root.addChild(asteroids);
-        asteroids.setLocalScale(0.2, 0.2, 0);
-        asteroids.tags.add("hazards");
-        asteroids.addComponent("rigidbody", {
+        app.root.addChild(asteroid);
+        asteroid.setLocalScale(0.2, 0.2, 0);
+        asteroid.tags.add("hazard");
+        asteroid.addComponent("rigidbody", {
           type: pc.BODYTYPE_DYNAMIC,
           mass: 5,
         });
 
-        asteroids.addComponent("collision");
+        asteroid.addComponent("collision");
+        asteroid.setPosition(6, 4, 0);
 
-        asteroids.addComponent("script");
-        asteroids.script.create(GameController);
+        const asteroid_2 = asteroid.clone();
+        app.root.addChild(asteroid_2);
+        asteroid_2.tags.add("hazard");
+
+        asteroid_2.addComponent("collision");
+        asteroid_2.setPosition(-6, 4, 0);
+
+        const asteroid_3 = asteroid.clone();
+        app.root.addChild(asteroid_3);
+        asteroid_3.setPosition(0, 4, 0);
+        asteroid_3.tags.add("hazard");
+
+        asteroid.enabled = false;
+        asteroid_2.enabled = false;
+        asteroid_3.enabled = false;
+
+        const Mover = pc.createScript("mover");
+
+        Mover.attributes.add("speed", {
+          type: "number",
+          default: 1,
+        });
+
+        // initialize code called once per entity
+        Mover.prototype.update = function (dt) {};
+
+        const asteroidArray = [asteroid, asteroid_2, asteroid_3];
+
+        asteroidArray.forEach((asteroid) => {
+          asteroid.addComponent("script");
+          asteroid.script.create(Mover, {
+            attributes: {
+              speed: -5,
+            },
+          });
+        });
+
+        const gameController = new pc.Entity("GameController");
+        gameController.addComponent("script");
+
+        gameController.script.create(GameController, {
+          attributes: {
+            spawnValues: new pc.Vec3(6, 4, 0),
+            hazardCount: pc.math.random(3, 7),
+            spawnWait: 0.5,
+            waveWait: 4,
+            startWait: 2,
+          },
+        });
+
+        app.root.addChild(gameController);
       }
     );
 
