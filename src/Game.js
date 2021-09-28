@@ -223,6 +223,7 @@ const Game = () => {
         while (true) {
           for (let i = 0; i < this.hazardCount; i++) {
             const hazards = this.app.root.findByTag("hazard");
+
             const newHazard =
               hazards[Math.floor(pc.math.random(0, hazards.length))].clone();
             const spawnPosition = new pc.Vec3(
@@ -317,27 +318,26 @@ const Game = () => {
 
         // initialize code called once per entity
         Mover.prototype.initialize = function (dt) {
-          // Create a vec3 to hold the lerped position
           this.lerpedPosition = new pc.Vec3();
-          // How fast the entity will reach the target
-          this.speed = 0.3;
+          this.speed = 0.1;
         };
 
         // update code called every frame
         Mover.prototype.update = function (dt) {
           this.targetPosition = new pc.Vec3(this.entity.getPosition().x, -6, 0);
-          // Lerp the current position and the target position
+
+          const position = this.entity.getPosition().clone();
+
           this.lerpedPosition.lerp(
-            this.entity.getPosition(),
+            position,
             this.targetPosition,
             this.speed * dt
           );
 
           // Update the entity's position to the lerped position
           this.entity.setPosition(this.lerpedPosition);
-          //console.log(this.targetPosition);
 
-          if (this.entity.getPosition.y >= -6) {
+          if (this.entity.getPosition().y <= -6) {
             this.entity.destroy();
           }
         };
@@ -358,15 +358,15 @@ const Game = () => {
 
         gameController.script.create(GameController, {
           attributes: {
-            spawnValues: new pc.Vec3(pc.math.random(6, -6), 5, 0),
-            hazardCount: pc.math.random(3, 7),
+            spawnValues: new pc.Vec3(pc.math.random(5, -5), 5, 0),
+            hazardCount: pc.math.random(3, 6),
             spawnWait: 0.5,
             waveWait: 4,
             startWait: 2,
           },
         });
 
-        //app.root.addChild(gameController);
+        app.root.addChild(gameController);
       }
     );
 
